@@ -18,7 +18,7 @@ fluidPage(
       sliderInput("theta","Initial Angle (Degrees)",min = -180,max = 180,value = 90),
       sliderInput("theta_dot","Initial Ang. Velocity (Degrees / s)",min = -540,max = 540,value = 0),
       hr(),
-      sliderInput("time","Simulation Time",min = 1, max = 20,value = 5),
+      sliderInput("time","Simulation Time (s)",min = 1, max = 20,value = 5),
       fluidRow(
         column(width = 6,
                radioButtons("fps","Frames / Second",choices = c("Low" = 1,"Medium" =2,"High" = 3,"Ultra" = 4),selected = 1)
