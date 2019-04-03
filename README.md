@@ -7,6 +7,16 @@ A shiny app which simulates a pendulum by numerically iterating through the gove
 
 Below is an image of the app.
 
+
+![](https://raw.githubusercontent.com/adamBirenbaum/diff-eq-simulations/master/temp/readme_app.png)
+
+Here is an example of the rendered gifs:
+
+
+![](https://raw.githubusercontent.com/adamBirenbaum/diff-eq-simulations/master/temp/vec_field.gif)
+![](https://raw.githubusercontent.com/adamBirenbaum/diff-eq-simulations/master/temp/traj.gif)
+
+
 ## Setup
 
 Requires latest CRAN version of `gganimate`.
