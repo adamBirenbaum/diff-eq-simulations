@@ -122,7 +122,7 @@ function(input,output){
   
   a <- animate(g_traj,nframes = nframes,fps = fps)
   anim_save(filename = "vec_field.gif",animation = a,path = path_to_folder)
-  output$gif2 <- renderImage(list(src =paste0(path_to_folder,"/vec_field.gif"),contentType = 'image/gif' ),deleteFile = F)
+  output$gif2 <- renderImage(list(src =paste0(path_to_folder,"/vec_field.gif"),contentType = 'image/gif' ),deleteFile = T)
   #g <- ggplot(data = df_pt,aes(x = x, y = y)) + geom_point(size = 3)+ transition_time(n) + ease_aes('linear') + labs(title = 'Time Step: {frame_time}')
   #animate(g)
   
@@ -138,7 +138,7 @@ function(input,output){
   a <- animate(g,nframes = nframes,fps = fps)
   anim_save(filename = "traj.gif",animation = a,path = path_to_folder)
  
-  output$gif1 <- renderImage(list(src =paste0(path_to_folder,"/traj.gif"),contentType = 'image/gif' ),deleteFile = F)
+  output$gif1 <- renderImage(list(src =paste0(path_to_folder,"/traj.gif"),contentType = 'image/gif' ),deleteFile = T)
   
   })
 }

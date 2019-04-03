@@ -8,7 +8,7 @@ A shiny app which simulates a pendulum by numerically iterating through the gove
 Below is an image of the app.
 ![](https://raw.githubusercontent.com/adamBirenbaum/diff-eq-simulations/master/README_files/readme_app.png)
 
-
+On the app, these two gifs are in sync
 ![](https://raw.githubusercontent.com/adamBirenbaum/diff-eq-simulations/master/README_files/traj.gif)
 ![](https://raw.githubusercontent.com/adamBirenbaum/diff-eq-simulations/master/README_files/vec_field.gif)
 
