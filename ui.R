@@ -6,7 +6,18 @@ library(shiny)
 
 ###
 # ONLY NEED TO EDIT THIS PATH TO A FOLDER WHERE TEMPORARY GIFS WILL BE STORED
-path_to_folder <<- "~/diff-eq-simulations/"
+
+
+common_path <- "public/project/diff-eq-simulations/"
+if (Sys.info()["nodename"] == "ADAM-DROPLET"){
+  path_to_folder<<- paste0("/var/www/adambirenbaum.com/",common_path)
+}else if(Sys.info()["sysname"] == "Windows"){
+  path_to_folder<<- "D:/abire/Documents/heat_transfer_sim/"
+}else{
+  path_to_folder <<- "~/diff-eq-simulations/"
+
+}
+
 
 ###
 
