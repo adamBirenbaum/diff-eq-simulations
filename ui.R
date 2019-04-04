@@ -27,7 +27,8 @@ fluidPage(
                radioButtons("acc","Simulation Accuracy",choices = c("Low" = 1,"Medium" =2,"High" = 3,"Ultra" = 4),selected = 1)
                )
       ),
-      actionButton("enter","Simulate")
+      actionButton("enter","Simulate")#,
+      #actionButton("enter2","Double pend")
         
     ),
     mainPanel(
