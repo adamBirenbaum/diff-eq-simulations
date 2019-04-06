@@ -1,26 +1,26 @@
 function(input,output){
   
   
-#   output$gif1 <- renderImage({
-#     
-#     outfile <- "~/diff-eq-simulations/blank.png"
-#     
-#     list(src = outfile,
-#          contentType = 'image/png',
-#          width = 2,
-#          height = 2)
-#   },deleteFile = F)
-#     
-#     
-# output$gif2 <- renderImage({
-#   outfile <- "~/diff-eq-simulations/blank.png"
-#   list(src = outfile,
-#        contentType = 'image/png',
-#        width = 2,
-#        height = 2)
-#   
-# },deleteFile = F)
-
+  #   output$gif1 <- renderImage({
+  #     
+  #     outfile <- "~/diff-eq-simulations/blank.png"
+  #     
+  #     list(src = outfile,
+  #          contentType = 'image/png',
+  #          width = 2,
+  #          height = 2)
+  #   },deleteFile = F)
+  #     
+  #     
+  # output$gif2 <- renderImage({
+  #   outfile <- "~/diff-eq-simulations/blank.png"
+  #   list(src = outfile,
+  #        contentType = 'image/png',
+  #        width = 2,
+  #        height = 2)
+  #   
+  # },deleteFile = F)
+  
   
   make_v_grid <- function(df,A){
     df$xend <- with(data = df,df$x +eval(parse(text = A[1])))
@@ -46,26 +46,26 @@ function(input,output){
   }
   
   make_trajectory <- function(A,pt,time,nframes,time_steps){
-   
-
-     n = time_steps
+    
+    
+    n = time_steps
     dt = time/n
     df_pt <- data.frame(x = rep(pt[1],each = n), y = rep(pt[2],each = n))
     
-  
- 
+    
+    
     for(i in 1:(n - 1)){
       df_pt$x[i+1] <- with(data = df_pt,x[i] +eval(parse(text = A[1])) * dt)[i]
       df_pt$y[i+1] <- with(data = df_pt,y[i] +eval(parse(text = A[2])) * dt)[i]
     }
-   
+    
     indexes <- round(seq(from = 1, to = n, length.out = nframes))
     df_pt <- df_pt[indexes,]
     
     dt2 = time/nframes
-
+    
     df_pt$n <- round(1:nrow(df_pt) * dt2,digits = 2)
-
+    
     df_pt
   }
   
@@ -227,9 +227,9 @@ function(input,output){
   }
   
   
-
-    make_xy_trajectory <- function(df,L,time,nframes){
-
+  
+  make_xy_trajectory <- function(df,L,time,nframes){
+    
     dt <- time/nframes
     theta <- df$x + df$y * dt
     df <- data.frame(x = L*sin(theta) , y = -L*cos(theta) )
@@ -238,18 +238,18 @@ function(input,output){
     df
   }
   
-    make_double_pendulum_trajectory <- function(df,l1,l2,time,nframes){
-      # double pendulum
-      dt <- time/nframes
-      theta1 <- df$x + df$xdot * dt
-      theta2 <- df$y +df$ydot*dt
-      df <- data.frame(x1 = l1*sin(theta1) , y1 = -l1*cos(theta1), x2 = l1*sin(theta1) + l2*sin(theta2), y2 = -l1*cos(theta1) - l2*cos(theta2))
-      df$n <- round(1:nrow(df) * dt,digits = 2)
-      
-      df
-    }
+  make_double_pendulum_trajectory <- function(df,l1,l2,time,nframes){
+    # double pendulum
+    dt <- time/nframes
+    theta1 <- df$x + df$xdot * dt
+    theta2 <- df$y +df$ydot*dt
+    df <- data.frame(x1 = l1*sin(theta1) , y1 = -l1*cos(theta1), x2 = l1*sin(theta1) + l2*sin(theta2), y2 = -l1*cos(theta1) - l2*cos(theta2))
+    df$n <- round(1:nrow(df) * dt,digits = 2)
     
-    
+    df
+  }
+  
+  
   
   trim_df <- function(df,xx,yy) {
     
@@ -261,132 +261,190 @@ function(input,output){
   }
   
   
-  observeEvent(input$enter,{
-    
-    
-    
-    l <- input$l
-    mu <- input$mu
-    theta <- input$theta * pi / 180
-    theta_dot <- input$theta_dot * pi / 180
-    
-    
-    time <- input$time
-    fps <- switch (as.numeric(input$fps),5,10,20,30)
-    nframes <- time * fps
-    
-    time_steps <- switch(as.numeric(input$acc),10000,20000,30000,80000)
-    
-    a <- seq(from = -5*pi, to = 5*pi, length.out = 900)
-   
-    
-    df <- expand.grid(x = a, y = a)
+  observeEvent(input$simulate_single_pendulum,{
+    output$ui_single_pendulum_output <- renderUI({
+      box(
+        title = "", solidHeader = T, status = "primary",width = NULL,height = "900px",
+        fluidRow(
+          column(width = 12,
+                 imageOutput(outputId = "single_pendulum_output",height = "100%")
+                 )
+        ),
+        br(),
+        br(),
+        fluidRow(
+          column(width = 12,
+                 imageOutput(outputId = "single_pendulum_phase_trajectory")
+                 )
+        )
+       
+       
 
+      )
+
+      
+    })
     
-    
+    withProgress(message = 'Simulating', value = 0, {
+      
 
-  
-  A <- c("y",paste0(-mu,"*y - 9.81/",l,"*sin(x)"))
-  
-  df <- make_v_grid(df,A)
-  
+      nprog <- 3
+      incProgress(1/nprog, detail = "Solving Diff Eq")
+      l <- input$l
+      mu <- input$mu
+      theta <- input$theta * pi / 180
+      theta_dot <- input$theta_dot * pi / 180
+      
+      
+      time <- input$time
+      fps <- switch (as.numeric(input$fps),5,10,20,30)
+      nframes <- time * fps
+      
+      time_steps <- 80000
+      
+      a <- seq(from = -5*pi, to = 5*pi, length.out = 900)
+      
+      
+      df <- expand.grid(x = a, y = a)
+      
+      
+      
+      
+      
+      A <- c("y",paste0(-mu,"*y - 9.81/",l,"*sin(x)"))
+      
+      df <- make_v_grid(df,A)
+      
+      
+      
+      # df_pt <- make_trajectory(A,c(theta,theta_dot),time,nframes,time_steps)
+      # browser()
+      df_pt <- fast_two_dof(A,c(theta,theta_dot),time,nframes,time_steps)
+      minx <- ceiling(min(df_pt$x) /2 /pi) - 1
+      maxx <- ceiling(max(df_pt$x) /2/ pi) + 1
+      
+      
+      asmall <- seq(from = minx*2*pi, to = maxx*2*pi, length.out = 36)
+      
+      miny <- -10
+      maxy <- 10
+      if (min(df_pt$y) <= -10) miny <- min(df_pt$y) * 1.1
+      if (max(df_pt$y) >= 10) miny <- max(df_pt$y) * 1.1
+      
+      
+      
+      asmally <- seq(from = miny, to = maxy, length.out = 36)
+      df_small <- expand.grid(x = asmall, y  = asmally)
+      df_small2 <- make_v_grid(df_small,A)
+      
+      incProgress(1/nprog, detail = "Creating Animation 1/2")
+      
+      g_traj <- ggplot() + geom_segment(data = df_small2,aes(x = x,y = y,xend = x_short_end, yend = y_short_end,color = l),arrow = arrow(length = unit(.1,"cm"))) + geom_hline(yintercept = 0) + 
+        geom_vline(xintercept = 0) + scale_color_gradient(low = "blue",high = "red") + geom_line(data = df_pt, aes(x = x, y = y),size = 1) + ggtitle("Phase Space Trajectory")+
+        xlim(minx*2*pi,maxx*2*pi) + ylim(-10,10) +theme_minimal() +theme(plot.title = element_text(size = 20),axis.title = element_text(size = 15))+ xlab("Angle")+ylab("Angular Velocity") +transition_reveal(along = n) + ease_aes('linear')
+      
+      
+      
+      a <- animate(g_traj,nframes = nframes,fps = fps)
+      anim_save(filename = "vec_field.gif",animation = a,path = path_to_folder)
 
-  
-  # df_pt <- make_trajectory(A,c(theta,theta_dot),time,nframes,time_steps)
-  # browser()
-  df_pt <- fast_two_dof(A,c(theta,theta_dot),time,nframes,time_steps)
-  minx <- ceiling(min(df_pt$x) /2 /pi) - 1
-  maxx <- ceiling(max(df_pt$x) /2/ pi) + 1
-  
+      #g <- ggplot(data = df_pt,aes(x = x, y = y)) + geom_point(size = 3)+ transition_time(n) + ease_aes('linear') + labs(title = 'Time Step: {frame_time}')
+      #animate(g)
+      
+      
+      
+      df_pend <- make_xy_trajectory(df_pt,l,time,nframes)
+      
+      incProgress(1/nprog, detail = "Creating Animation 2/2")
+      g <- ggplot(data = df_pend,aes(x = 0, y = 0,xend = x, yend = y)) + geom_segment(size = 3)+coord_fixed()+theme_minimal() + theme(plot.title = element_text(size = 20),axis.title = element_text(size = 15))+
+        xlab("Position [m]")+ylab("Position [m]") +
+        transition_time(n) + ease_aes('linear') + 
+        labs(title = 'Time: {frame_time} s')
+      
+      a <- animate(g,nframes = nframes,fps = fps,height = 250)
+      anim_save(filename = "traj.gif",animation = a,path = path_to_folder)
+      
+      output$single_pendulum_phase_trajectory<- renderImage(list(src =paste0(path_to_folder,"/vec_field.gif"),contentType = 'image/gif' ),deleteFile = T)
+      output$single_pendulum_output <- renderImage(list(src =paste0(path_to_folder,"/traj.gif"),contentType = 'image/gif' ),deleteFile = T)
+      
 
-  asmall <- seq(from = minx*2*pi, to = maxx*2*pi, length.out = 36)
-  
-  miny <- -10
-  maxy <- 10
-  if (min(df_pt$y) <= -10) miny <- min(df_pt$y) * 1.1
-  if (max(df_pt$y) >= 10) miny <- max(df_pt$y) * 1.1
-  
-  
-
-  asmally <- seq(from = miny, to = maxy, length.out = 36)
-  df_small <- expand.grid(x = asmall, y  = asmally)
-  df_small2 <- make_v_grid(df_small,A)
-
-
-  g_traj <- ggplot() + geom_segment(data = df_small2,aes(x = x,y = y,xend = x_short_end, yend = y_short_end,color = l),arrow = arrow(length = unit(.1,"cm"))) + geom_hline(yintercept = 0) + 
-    geom_vline(xintercept = 0) + scale_color_gradient(low = "blue",high = "red") + geom_line(data = df_pt, aes(x = x, y = y),size = 1) + 
-    xlim(minx*2*pi,maxx*2*pi) + ylim(-10,10) +theme_minimal() + xlab("Angle")+ylab("Angular Velocity") +transition_reveal(along = n) + ease_aes('linear')
-  
-  
-  a <- animate(g_traj,nframes = nframes,fps = fps)
-  anim_save(filename = "vec_field.gif",animation = a,path = path_to_folder)
-  output$gif2 <- renderImage(list(src =paste0(path_to_folder,"/vec_field.gif"),contentType = 'image/gif' ),deleteFile = T)
-  #g <- ggplot(data = df_pt,aes(x = x, y = y)) + geom_point(size = 3)+ transition_time(n) + ease_aes('linear') + labs(title = 'Time Step: {frame_time}')
-  #animate(g)
-  
-  
-  
-  df_pend <- make_xy_trajectory(df_pt,l,time,nframes)
-  
-  
-  g <- ggplot(data = df_pend,aes(x = 0, y = 0,xend = x, yend = y)) + geom_segment(size = 3)+coord_fixed()+theme_minimal() + xlab("Angle")+ylab("Angular Velocity") +
-   transition_time(n) + ease_aes('linear') + 
-    labs(title = 'Time: {frame_time} s')
-  
-  a <- animate(g,nframes = nframes,fps = fps)
-  anim_save(filename = "traj.gif",animation = a,path = path_to_folder)
- 
-  output$gif1 <- renderImage(list(src =paste0(path_to_folder,"/traj.gif"),contentType = 'image/gif' ),deleteFile = T)
-  
+      
+    })
   })
   
-  observeEvent(input$enter2,{
-
+  observeEvent(input$simulate_double_pendulum,{
     
-    l1 <- input$l
-    l2 <- l1*1
-    m1 <- 500
-    m2 <- 1
+    output$ui_double_pendulum_output <- renderUI({
+      box(
+        title = "", solidHeader = T, status = "primary",width = NULL,height = "600px",
+        fluidRow(
+          column(width = 12,
+                 imageOutput(outputId = "double_pendulum_output",height = "100%")
+          )
+        )
+        
+        
+        
+      )
+      
+      
+    })
+    
+    
+    
+    withProgress(message = 'Simulating', value = 0, {
+      
+      
+      nprog <- 2
+      incProgress(1/nprog, detail = "Solving Diff Eq")
+    
+    l1 <- input$double_l1
+    l2 <- input$double_l2
+    m1 <- input$double_m1
+    m2 <- input$double_m2
     g <- 9.81
-    mu <- input$mu
-    theta <- input$theta * pi / 180
-    theta_dot <- input$theta_dot * pi / 180
-
-
-    time <- input$time
-    fps <- switch (as.numeric(input$fps),5,10,20,30)
+    mu <- input$mu_double
+    theta <- input$double_theta1 * pi / 180
+    theta_dot <- input$double_theta_dot1 * pi / 180
+    theta2 <- input$double_theta2* pi / 180
+    theta_dot2 <- input$double_theta_dot2* pi / 180
+    
+    
+    time <- input$double_time
+    fps <- switch (as.numeric(input$double_fps),5,10,20,30)
     nframes <- time * fps
-
-    time_steps <- switch(as.numeric(input$acc),10000,20000,30000,80000)
-
+    
+    time_steps <- 80000
+    
     A1 <- paste0("1/(",(m1+m2)*l1,"-", m2*l1,"*cos(x - y)^2)*(-cos(x - y)*(",m2*l1,"*xdot^2*sin(x - y) - ",m2*g,"*sin(y))-",
-                 m2*l2,"*ydot*sin(x - y) - ",g*(m1+m2),"*sin(x))")
+                 m2*l2,"*ydot*sin(x - y) - ",g*(m1+m2),"*sin(x)) - ",mu,"*xdot")
     A2 <- paste0("1/(",m2*l2,"-",m2^2*l2/(m1+m2),"*cos(x - y)^2)*(",-m2/(m1+m2),"*cos(x-y)*(",-m2*l2,"*ydot^2*sin(x - y) -",g*(m1+m2),
-                 "*sin(x))+",m2*l1,"*xdot^2*sin(x - y) -",m2*g,"*sin(y))")
+                 "*sin(x))+",m2*l1,"*xdot^2*sin(x - y) -",m2*g,"*sin(y))- ",mu,"*ydot")
     
     A <- c("xdot","ydot",A1,A2)
     
-    pt <- c(theta,pi/4,theta_dot,20*pi/180)
-
-
+    pt <- c(theta,theta2,theta_dot,theta_dot2)
+    
+    
     df_pt <- fast_four_dof(A,pt,time,nframes,time_steps)
     
     df_pend <- make_double_pendulum_trajectory(df_pt,l1,l2,time,nframes)
-
-    g <- ggplot(data = df_pend,aes(x = 0, y = 0,xend = x1, yend = y1)) + geom_segment(size = 3)+ geom_segment(data = df_pend, aes(x = x1, y = y1, xend = x2, yend = y2),size = 3)+
-      coord_fixed()+theme_minimal() + xlab("Angle")+ylab("Angular Velocity") +
+    incProgress(1/nprog, detail = "Creating Animation 1/1")
+    g <- ggplot(data = df_pend,aes(x = 0, y = 0,xend = x1, yend = y1)) + geom_segment(size = 3,color = "blue")+ geom_segment(data = df_pend, aes(x = x1, y = y1, xend = x2, yend = y2),size = 3,color = "red")+
+      coord_fixed()+theme_minimal() + theme(plot.title = element_text(size = 20),axis.title = element_text(size = 15)) + 
+      xlab("Position [m]")+ylab("Position [m]") +
       transition_time(n) + ease_aes('linear') + 
       labs(title = 'Time: {frame_time} s')
-
+    
     a <- animate(g,nframes = nframes,fps = fps)
-    anim_save(filename = "traj.gif",animation = a,path = path_to_folder)
+    anim_save(filename = "traj.gif",animation = a,path = path_to_folder,height = 250)
     
-    output$gif1 <- renderImage(list(src =paste0(path_to_folder,"/traj.gif"),contentType = 'image/gif' ),deleteFile = T)
+    output$double_pendulum_output <- renderImage(list(src =paste0(path_to_folder,"/traj.gif"),contentType = 'image/gif' ),deleteFile = T)
     
     
-  
-  
+    
     })
+  })
   
 }
 
