@@ -35,7 +35,10 @@ dashboardPage(
       menuItem("Pendulum",
                menuSubItem("Single", tabName = "single_pendulum"),
                menuSubItem("Double",tabName = "double_pendulum")
-      )
+      ),
+      menuItem("Orbits",
+               menuSubItem("Launch", tabName = "launch")
+               )
     )
   ),
   dashboardBody(
@@ -131,7 +134,37 @@ dashboardPage(
               )
               
               
-      )
+      ),
+      tabItem(tabName = "launch",
+              fluidRow(
+                column(width = 4,
+                       box(width = NULL, title = "Launch Parameters",status = "primary",solidHeader = T,
+                           
+                           sliderInput("launch_initial_v","Initial Velocity (m/s)",min = 1000, max = 6500, value = 5000),
+                           sliderInput("launch_initial_theta","Initial Angle (degrees)",min = 0, max = 180, value = 45)
+                           ),
+                       
+                       box(
+                         title = "Simulation Options",solidHeader = T, status = "primary",width = NULL,
+                         fluidRow(
+                           column(width = 12,
+                                  sliderInput("launch_time","Simulation Time (hours)",min = 1, max = 10,value = 2,step = 0.5),
+                                  radioButtons("launch_fps","Frame Rate",choices = c("Low" = 1,"Medium" =2,"High" = 3,"Ultra" = 4),selected = 1,inline = T)
+                           )
+                           
+                           
+                         )
+                       ),
+                       successActionButton("simulate_launch","Simulate")
+                       ),
+                column(width = 6,
+                       uiOutput("ui_launch_output")
+                       
+                       )
+              )
+              
+              
+              )
       
     )
     

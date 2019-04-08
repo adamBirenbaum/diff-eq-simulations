@@ -37,14 +37,16 @@ function(input,output){
     
   }
   
-  
-  find_closest_val <- function(df,pt){
-    df$dist <- sqrt((df$x - pt[1])^2 + (df$y - pt[2])^2)
-    df <- df %>% arrange(dist)
-    df[1,]
-    
+  make_planet <- function(r){
+    tt <- seq(0,2 * pi, length.out = 1000)
+    xx <- r*cos(tt)
+    yy <- r*sin(tt)
+    return(data.frame(x = xx, y = yy))
   }
   
+  
+  
+
   make_trajectory <- function(A,pt,time,nframes,time_steps){
     
     
@@ -102,10 +104,12 @@ function(input,output){
     
   }
   
-  
+
   fast_four_dof <- function(A,pt,time,nframes,time_steps){
-    n = time_steps
-    dt = time/n
+    n <- time_steps
+    dt <- time/n
+    
+    writeLines(paste0("Frames: ",nframes,"\nTime: ", time,"\nTime Steps: ",n,"\ndt: ",dt))
     
     A1 <- parse(text = A[1])
     A2 <- parse(text = A[2])
@@ -249,6 +253,38 @@ function(input,output){
     df
   }
   
+  make_launch_trajectory <- function(df,ro,time,nframes,rlimit = 2){
+    dt <- time/nframes 
+    
+    r <- df$x + df$xdot * dt
+    theta <- df$y + df$ydot * dt
+    
+    r <- c(df$x[1],r)
+    theta <- c(df$y[1], theta)
+    
+    ind <- which(r < ro)
+    if (length(ind) > 0){
+      r <- r[1:(ind[1] - 1)]
+      theta <- theta[1:(ind[1] - 1)]
+      
+    }
+    
+    ind2 <- which(r > (rlimit*ro))
+    
+    if (length(ind2) > 0){
+      r <- r[1:(ind2[1] - 1)]
+      theta <- theta[1:(ind2[1] - 1)]
+    }
+
+    df <- data.frame(x = r*cos(theta),y = r*sin(theta))
+    df <- df[-nrow(df),]
+    df$n <- round(1:nrow(df) * dt,digits = 2)
+    
+    df
+    
+    
+  }
+  
   
   
   trim_df <- function(df,xx,yy) {
@@ -257,7 +293,7 @@ function(input,output){
     small_range <- round(seq(from = 1, to = nrow(df),length.out = 360))
     df <- df[sample(nrow(df)),]
     df[small_range,]
-    
+    M
   }
   
   
@@ -444,6 +480,76 @@ function(input,output){
     
     
     })
+  })
+  
+  observeEvent(input$simulate_launch,{
+    
+    output$ui_launch_output <- renderUI({
+      box(
+        title = "", solidHeader = T, status = "primary",width = NULL,height = "600px",
+        fluidRow(
+          column(width = 12,
+                 imageOutput(outputId = "launch_output",height = "100%")
+          )
+        )
+        
+        
+        
+      )
+      
+      
+    })
+    withProgress(message = 'Simulating', value = 0, {
+    
+    nprog <- 2
+    incProgress(1/nprog, detail = "Solving Diff Eq")
+    
+
+   ro <- 6.271E6
+   G <- 6.67408E-11
+   Me <- 5.972E24
+   vo <- input$launch_initial_v 
+   # 6120  6137
+
+   theta0 <- input$launch_initial_theta * pi / 180
+   r_doto <- vo * sin(theta0)
+   theta_doto <- vo*cos(theta0) / ro
+   
+   
+   time <- input$launch_time * 3600
+
+   
+   fps <- switch (as.numeric(input$launch_fps),5,10,20,30)
+
+   
+
+   nframes <- time/3600 *fps*6 # frames are calculated per 10 min
+   
+   time_steps <- 80000
+   
+   A <- c("xdot","ydot",paste0("x*(ydot)^2 - ",G*Me,"/x^2"),0)
+   
+   pt <- c(ro,90 * pi/180,r_doto, theta_doto)
+   
+   df_pt <- fast_four_dof(A,pt,time,nframes,time_steps)
+    
+   df_launch <- make_launch_trajectory(df_pt,ro,time,nframes,rlimit = 16)
+   
+   df_earth <- make_planet(ro)
+    
+   incProgress(1/nprog, detail = "Creating Animation 1/1")
+   g <- ggplot(df_launch, aes(x = x, y =y )) + coord_fixed() + theme_void()+ geom_line() +geom_path(data = df_earth, aes(x = x, y=y)) +  transition_reveal(along = n)
+  
+   
+   a <- animate(g,nframes = nframes,fps = fps)
+   anim_save(filename = "traj.gif",animation = a,path = path_to_folder,height = 250)
+   
+   output$launch_output <- renderImage(list(src =paste0(path_to_folder,"/traj.gif"),contentType = 'image/gif' ),deleteFile = T)
+   
+   
+   
+   })
+    
   })
   
 }
